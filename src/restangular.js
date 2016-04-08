@@ -244,6 +244,15 @@ restangular.provider('Restangular', function() {
       return config.getFieldFromElem(config.restangularFields.id, elem);
     };
 
+    config.setEtagToElem = function(elem, etag) {
+      config.setFieldToElem(config.restangularFields.etag, elem, etag);
+      return this;
+    };
+
+    config.getEtagFromElem = function(elem) {
+      return config.getFieldFromElem(config.restangularFields.etag, elem);
+    };
+
     config.isValidId = function(elemId) {
       return '' !== elemId && !_.isUndefined(elemId) && !_.isNull(elemId);
     };
@@ -1032,7 +1041,7 @@ restangular.provider('Restangular', function() {
         var data = config.responseExtractor(resData, operation, route, fetchUrl, response, deferred);
         var etag = response.headers('ETag');
         if (data && etag) {
-          data[config.restangularFields.etag] = etag;
+          config.setEtagToElem(data, etag);
         }
         return data;
       }
@@ -1110,7 +1119,7 @@ restangular.provider('Restangular', function() {
         };
 
         urlHandler.resource(this, $http, request.httpConfig, request.headers, request.params, what,
-                this[config.restangularFields.etag], operation)[method]().then(okCallback, function error(response) {
+                config.getEtagFromElem(this), operation)[method]().then(okCallback, function error(response) {
           if (response.status === 304 && __this[config.restangularFields.restangularCollection]) {
             resolvePromise(deferred, response, __this, filledArray);
           } else if ( _.every(config.errorInterceptors, function(cb) { return cb(response, deferred, okCallback) !== false; }) ) {
@@ -1144,7 +1153,7 @@ restangular.provider('Restangular', function() {
 
         var callObj = obj || this;
         // fallback to etag on restangular object (since for custom methods we probably don't explicitly specify the etag field)
-        var etag = callObj[config.restangularFields.etag] || (operation !== 'post' ? this[config.restangularFields.etag] : null);
+        var etag = config.getEtagFromElem(callObj) || (operation !== 'post' ? config.getEtagFromElem(this) : null);
 
         if (_.isObject(callObj) && config.isRestangularized(callObj)) {
           callObj = stripRestangular(callObj);
