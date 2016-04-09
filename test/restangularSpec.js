@@ -175,6 +175,9 @@ describe("Restangular", function() {
       return [201, JSON.stringify(newData), ""];
     });
 
+    $httpBackend.whenGET("/objectWithETag").respond(function() {
+      return [201, [], {'ETag' : 123} ];
+    });
   }));
 
   afterEach(function() {
@@ -1146,6 +1149,66 @@ describe("Restangular", function() {
       expect(newApi.configuration.baseUrl).toEqual('api.new.domain');
       newApi.all("customers////").getList();
       $httpBackend.expectGET('api.new.domain/customers/');
+
+      $httpBackend.flush();
+    });
+  });
+
+  describe("testing ETag response header", function() {
+    it("Should GET an object with returning header ETag and set the ETag header value inside a simple etag attribute", function() {
+      var customRestangular = Restangular.withConfig(function(RestangularConfigurer) {
+        RestangularConfigurer.setRestangularFields({ etag: '_etag' });
+      });
+
+      customRestangular.all('/objectWithETag').getList().then(function(response) {
+          expect(response._etag).toBe('123');
+        }
+      );
+
+      $httpBackend.flush();
+    });
+
+    it("Should GET an object with returning header ETag and set the ETag header value inside a complex etag attribute", function() {
+      var customRestangular = Restangular.withConfig(function(RestangularConfigurer) {
+        RestangularConfigurer.setRestangularFields({ etag: '_etag.$oid' });
+      });
+
+      customRestangular.all('/objectWithETag').getList().then(function(response) {
+          expect(response._etag.$oid).toBe('123');
+        }
+      );
+
+      $httpBackend.flush();
+    });
+  });
+
+  describe("testing If-Match header to support ETag", function() {
+    it("Should put the If-Match header with value retrieved by a simple etag attribute", function() {
+        var customRestangular = Restangular.withConfig(function(RestangularConfigurer) {
+          RestangularConfigurer.setRestangularFields({ etag: '_etag' });
+        });
+
+        customRestangular.all('/objectWithETag').post({ _etag: '123' });
+
+        $httpBackend.whenPOST("/objectWithETag").respond(function(method, url, data, headers) {
+          expect(headers['If-Match']).toBe('123');
+          return [201, angular.fromJson(data)];
+        });
+
+        $httpBackend.flush();
+    });
+
+    it("Should put the If-Match header with value retrieved by a complex etag attribute", function() {
+      var customRestangular = Restangular.withConfig(function(RestangularConfigurer) {
+        RestangularConfigurer.setRestangularFields({ etag: '_etag.$oid' });
+      });
+
+      customRestangular.all('/objectWithETag').post({ _etag: { $oid:'123' }});
+
+      $httpBackend.whenPOST("/objectWithETag").respond(function(method, url, data, headers) {
+        expect(headers['If-Match']).toBe('123');
+        return [201, angular.fromJson(data)];
+      });
 
       $httpBackend.flush();
     });
