@@ -76,6 +76,8 @@ You can also **check out [a video introduction of a talk I gave at Devoxx France
     - [Can it be used in $routeProvider.resolve?](#can-it-be-used-in-routeproviderresolve)
     - [My response is actually wrapped with some metadata. How do I get the data in that case?](#my-response-is-actually-wrapped-with-some-metadata-how-do-i-get-the-data-in-that-case)
     - [I use Mongo and the ID of the elements is _id not id as the default. Therefore requests are sent to undefined routes](#i-use-mongo-and-the-id-of-the-elements-is-_id-not-id-as-the-default-therefore-requests-are-sent-to-undefined-routes)
+    - [I use Mongo and the ID of the elements is `_id` and is encapsulated inside the $oid attribute](#i-use-mongo-and-the-etag-of-the-elements-is-_etag-and-is-encapsulated-inside-the-oid-attribute)
+    - [I use Mongo and the ETag of the elements is `_etag` and is encapsulated inside the $oid attribute](#i-use-mongo-and-the-etag-of-the-elements-is-_etag-and-is-encapsulated-inside-the-oid-attribute)
     - [What if each of my models has a different ID name like CustomerID for Customer](#what-if-each-of-my-models-has-a-different-id-name-like-customerid-for-customer)
     - [How do I handle CRUD operations in a List returned by Restangular?](#how-do-i-handle-crud-operations-in-a-list-returned-by-restangular)
     - [When I set baseUrl with a port, it's stripped out.](#when-i-set-baseurl-with-a-port-its-stripped-out)
@@ -1148,6 +1150,26 @@ What you need to do is to configure the `RestangularFields` and set the `id` fie
 ````javascript
 RestangularProvider.setRestangularFields({
   id: "_id"
+});
+````
+
+#### **I use Mongo and the ID of the elements is `_id` and is encapsulated inside the $oid attribute**
+
+What you need to do is to configure the `RestangularFields` and set the `id` field to `_id.$oid`. Let's see how:
+
+````javascript
+RestangularProvider.setRestangularFields({
+  id: "_id.$oid"
+});
+````
+
+#### **I use Mongo and the ETag of the elements is `_etag` and is encapsulated inside the $oid attribute**
+
+What you need to do is to configure the `RestangularFields` and set the `etag` field to `_etag.$oid`. Let's see how:
+
+````javascript
+RestangularProvider.setRestangularFields({
+  etag: "_etag.$oid"
 });
 ````
 
